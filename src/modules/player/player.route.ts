@@ -35,10 +35,32 @@ router.patch(
   playerController.updatePlayer
 );
 
+router.post(
+  '/bulk-delete',
+  protect,
+  authorize('Super Admin', 'Organizer', 'Team Manager'),
+  playerController.bulkDeletePlayers
+);
+
+router.post(
+  '/bulk-update',
+  protect,
+  authorize('Super Admin', 'Organizer', 'Team Manager'),
+  playerController.bulkUpdatePlayers
+);
+
+router.post(
+  '/:id/restore',
+  protect,
+  authorize('Super Admin', 'Organizer', 'Team Manager'),
+  validate(playerParamsValidationSchema),
+  playerController.restorePlayer
+);
+
 router.delete(
   '/:id',
   protect,
-  authorize('Super Admin', 'Organizer'),
+  authorize('Super Admin', 'Organizer', 'Team Manager'),
   validate(playerParamsValidationSchema),
   playerController.deletePlayer
 );

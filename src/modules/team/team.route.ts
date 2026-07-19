@@ -22,6 +22,28 @@ router.post(
 
 router.get('/', validate(queryTeamValidationSchema), teamController.getAllTeams);
 
+router.post(
+  '/bulk-delete',
+  protect,
+  authorize('Super Admin', 'Organizer', 'Team Manager'),
+  teamController.bulkDeleteTeams
+);
+
+router.post(
+  '/bulk-update',
+  protect,
+  authorize('Super Admin', 'Organizer', 'Team Manager'),
+  teamController.bulkUpdateTeams
+);
+
+router.post(
+  '/:id/restore',
+  protect,
+  authorize('Super Admin', 'Organizer', 'Team Manager'),
+  validate(teamParamsValidationSchema),
+  teamController.restoreTeam
+);
+
 router.get('/:id', validate(teamParamsValidationSchema), teamController.getTeamById);
 
 router.patch(
@@ -36,7 +58,7 @@ router.patch(
 router.delete(
   '/:id',
   protect,
-  authorize('Super Admin', 'Organizer'),
+  authorize('Super Admin', 'Organizer', 'Team Manager'),
   validate(teamParamsValidationSchema),
   teamController.deleteTeam
 );

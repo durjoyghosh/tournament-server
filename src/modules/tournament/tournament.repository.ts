@@ -138,12 +138,18 @@ export class TournamentRepository {
     status?: string;
     organizer?: string;
     isPublished?: string;
+    showDeleted?: string;
   }) {
     const page = Math.max(1, query.page || 1);
     const limit = Math.max(1, query.limit || 10);
     const skip = (page - 1) * limit;
 
-    const filter: FilterQuery<ITournament> = { isDeleted: false };
+    const filter: FilterQuery<ITournament> = {};
+    if (query.showDeleted === 'true') {
+      filter.isDeleted = true;
+    } else {
+      filter.isDeleted = false;
+    }
 
     if (query.search) {
       filter.name = { $regex: query.search, $options: 'i' };

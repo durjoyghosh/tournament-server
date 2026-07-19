@@ -2,15 +2,31 @@ import { z } from 'zod';
 
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
+const createRequiredDateSchema = (fieldName: string) =>
+  z.string({ required_error: `${fieldName} is required` })
+    .trim()
+    .min(1, `${fieldName} is required`)
+    .refine((val) => !isNaN(Date.parse(val)), { message: `Invalid ${fieldName.toLowerCase()} format` })
+    .transform((val) => new Date(val).toISOString());
+
+const createOptionalDateSchema = (fieldName: string) =>
+  z.preprocess(
+    (val) => (val === '' ? undefined : val),
+    z.string()
+      .refine((val) => !isNaN(Date.parse(val)), { message: `Invalid ${fieldName.toLowerCase()} format` })
+      .transform((val) => new Date(val).toISOString())
+      .optional()
+  );
+
 export const createMatchValidationSchema = z.object({
   body: z.object({
     tournament: z.string({ required_error: 'Tournament ID is required' }).regex(objectIdRegex, 'Invalid Tournament ID'),
     homeTeam: z.string({ required_error: 'Home Team ID is required' }).regex(objectIdRegex, 'Invalid Home Team ID'),
     awayTeam: z.string({ required_error: 'Away Team ID is required' }).regex(objectIdRegex, 'Invalid Away Team ID'),
     venue: z.string().trim().optional(),
-    referee: z.string().regex(objectIdRegex, 'Invalid Referee ID').optional(),
-    scorekeeper: z.string().regex(objectIdRegex, 'Invalid Scorekeeper ID').optional(),
-    date: z.string({ required_error: 'Match date is required' }).datetime('Invalid match date format'),
+    referee: z.preprocess((val) => (val === '' ? null : val), z.string().regex(objectIdRegex, 'Invalid Referee ID').nullable().optional()),
+    scorekeeper: z.preprocess((val) => (val === '' ? null : val), z.string().regex(objectIdRegex, 'Invalid Scorekeeper ID').nullable().optional()),
+    date: createRequiredDateSchema('Match date'),
     round: z.string().optional(),
   }),
 });
@@ -18,9 +34,9 @@ export const createMatchValidationSchema = z.object({
 export const updateMatchValidationSchema = z.object({
   body: z.object({
     venue: z.string().trim().optional(),
-    referee: z.string().regex(objectIdRegex, 'Invalid Referee ID').optional(),
-    scorekeeper: z.string().regex(objectIdRegex, 'Invalid Scorekeeper ID').optional(),
-    date: z.string().datetime('Invalid match date format').optional(),
+    referee: z.preprocess((val) => (val === '' ? null : val), z.string().regex(objectIdRegex, 'Invalid Referee ID').nullable().optional()),
+    scorekeeper: z.preprocess((val) => (val === '' ? null : val), z.string().regex(objectIdRegex, 'Invalid Scorekeeper ID').nullable().optional()),
+    date: createOptionalDateSchema('Match date'),
     round: z.string().optional(),
     status: z.enum(['scheduled', 'live', 'halftime', 'completed', 'cancelled']).optional(),
     score: z.object({
@@ -104,7 +120,8 @@ export const queryMatchValidationSchema = z.object({
     team: z.string().regex(objectIdRegex, 'Invalid Team ID').optional(),
     referee: z.string().regex(objectIdRegex, 'Invalid Referee ID').optional(),
     scorekeeper: z.string().regex(objectIdRegex, 'Invalid Scorekeeper ID').optional(),
-    status: z.enum(['scheduled', 'live', 'halftime', 'completed', 'cancelled']).optional(),
+    status: z.preprocess((val) => (val === '' ? undefined : val), z.enum(['scheduled', 'live', 'halftime', 'completed', 'cancelled']).optional()),
+    showDeleted: z.string().optional(),
   }),
 });
 
@@ -113,3 +130,10 @@ export const matchParamsValidationSchema = z.object({
     id: z.string().regex(objectIdRegex, 'Invalid Match ID'),
   }),
 });
+
+export const bulkMatchValidationSchema = z.object({
+  body: z.object({
+    ids: z.array(z.string().regex(objectIdRegex, 'Invalid Match ID')).min(1, 'At least one ID is required'),
+  }),
+});
+

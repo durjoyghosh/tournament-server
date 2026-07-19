@@ -50,12 +50,15 @@ export class MatchRepository {
     team?: string;
     referee?: string;
     status?: string;
+    showDeleted?: string;
   }) {
     const page = Math.max(1, query.page || 1);
     const limit = Math.max(1, query.limit || 10);
     const skip = (page - 1) * limit;
 
-    const filter: FilterQuery<IMatch> = { isDeleted: false };
+    const filter: FilterQuery<IMatch> = query.showDeleted === 'true'
+      ? { isDeleted: true }
+      : { isDeleted: false };
 
     if (query.tournament) {
       filter.tournament = query.tournament;
@@ -98,6 +101,21 @@ export class MatchRepository {
         totalPages,
       },
     };
+  }
+
+  async restore(id: string): Promise<IMatch | null> {
+    return Match.findOneAndUpdate(
+      { _id: id, isDeleted: true },
+      { isDeleted: false },
+      { new: true }
+    );
+  }
+
+  async bulkDelete(ids: string[], deletedBy: string): Promise<void> {
+    await Match.updateMany(
+      { _id: { $in: ids }, isDeleted: false },
+      { isDeleted: true, updatedBy: deletedBy }
+    );
   }
 }
 

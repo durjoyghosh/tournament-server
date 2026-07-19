@@ -10,10 +10,17 @@ export const validate = (schema: AnyZodObject): RequestHandler => {
         params: req.params,
       });
 
-      // Assign parsed/validated values back to request
-      req.body = parsed.body;
-      req.query = parsed.query;
-      req.params = parsed.params;
+      // Assign parsed/validated values back to request only if they are defined in the schema
+      if (schema && 'shape' in schema) {
+        const shape = (schema as any).shape;
+        if ('body' in shape) req.body = parsed.body;
+        if ('query' in shape) req.query = parsed.query;
+        if ('params' in shape) req.params = parsed.params;
+      } else {
+        req.body = parsed.body;
+        req.query = parsed.query;
+        req.params = parsed.params;
+      }
 
       next();
     } catch (error) {

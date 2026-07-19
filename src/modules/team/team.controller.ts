@@ -62,3 +62,43 @@ export const deleteTeam = catchAsync(async (req: Request, res: Response) => {
     message: 'Team deleted successfully',
   });
 });
+
+export const restoreTeam = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?.id;
+  if (!currentUserId) throw new AppError(401, 'Unauthorized');
+
+  const team = await teamService.restoreTeam(req.params.id, currentUserId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Team restored successfully',
+    data: team,
+  });
+});
+
+export const bulkDeleteTeams = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?.id;
+  if (!currentUserId) throw new AppError(401, 'Unauthorized');
+
+  const { ids } = req.body;
+  await teamService.bulkDeleteTeams(ids, currentUserId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Teams bulk deleted successfully',
+  });
+});
+
+export const bulkUpdateTeams = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?.id;
+  if (!currentUserId) throw new AppError(401, 'Unauthorized');
+
+  const { ids, data } = req.body;
+  await teamService.bulkUpdateTeams(ids, data, currentUserId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Teams bulk updated successfully',
+  });
+});
+

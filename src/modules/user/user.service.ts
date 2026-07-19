@@ -219,6 +219,32 @@ export class UserService {
       },
     };
   }
+
+  async restoreUser(id: string, updatedBy: string): Promise<IUser> {
+    const user = await User.findOneAndUpdate(
+      { _id: id, isDeleted: true },
+      { isDeleted: false, updatedBy },
+      { new: true }
+    );
+    if (!user) {
+      throw new AppError(404, 'Deleted user not found');
+    }
+    return user;
+  }
+
+  async bulkDeleteUsers(ids: string[], deletedBy: string): Promise<any> {
+    return User.updateMany(
+      { _id: { $in: ids }, isDeleted: false },
+      { isDeleted: true, updatedBy: deletedBy }
+    );
+  }
+
+  async bulkUpdateUsers(ids: string[], updateData: any, updatedBy: string): Promise<any> {
+    return User.updateMany(
+      { _id: { $in: ids }, isDeleted: false },
+      { ...updateData, updatedBy }
+    );
+  }
 }
 
 export const userService = new UserService();

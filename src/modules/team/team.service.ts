@@ -1,5 +1,5 @@
 import { teamRepository } from './team.repository';
-import { ITeam } from './team.model';
+import { Team, ITeam } from './team.model';
 import { AppError } from '../../utils/AppError';
 import { User } from '../user/user.model';
 
@@ -107,6 +107,32 @@ export class TeamService {
     }
 
     await teamRepository.softDelete(id, userId);
+  }
+
+  async restoreTeam(id: string, updatedBy: string): Promise<ITeam> {
+    const team = await Team.findOneAndUpdate(
+      { _id: id, isDeleted: true },
+      { isDeleted: false, updatedBy },
+      { new: true }
+    );
+    if (!team) {
+      throw new AppError(404, 'Deleted team not found');
+    }
+    return team;
+  }
+
+  async bulkDeleteTeams(ids: string[], deletedBy: string): Promise<any> {
+    return Team.updateMany(
+      { _id: { $in: ids }, isDeleted: false },
+      { isDeleted: true, updatedBy: deletedBy }
+    );
+  }
+
+  async bulkUpdateTeams(ids: string[], updateData: any, updatedBy: string): Promise<any> {
+    return Team.updateMany(
+      { _id: { $in: ids }, isDeleted: false },
+      { ...updateData, updatedBy }
+    );
   }
 }
 

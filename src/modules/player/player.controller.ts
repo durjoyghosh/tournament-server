@@ -75,3 +75,42 @@ export const deletePlayer = catchAsync(async (req: Request, res: Response) => {
     message: 'Player profile deleted successfully',
   });
 });
+
+export const restorePlayer = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?.id;
+  if (!currentUserId) throw new AppError(401, 'Unauthorized');
+
+  const player = await playerService.restorePlayer(req.params.id, currentUserId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Player profile restored successfully',
+    data: player,
+  });
+});
+
+export const bulkDeletePlayers = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?.id;
+  if (!currentUserId) throw new AppError(401, 'Unauthorized');
+
+  const { ids } = req.body;
+  await playerService.bulkDeletePlayers(ids, currentUserId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Players bulk deleted successfully',
+  });
+});
+
+export const bulkUpdatePlayers = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?.id;
+  if (!currentUserId) throw new AppError(401, 'Unauthorized');
+
+  const { ids, data } = req.body;
+  await playerService.bulkUpdatePlayers(ids, data, currentUserId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Players bulk updated successfully',
+  });
+});

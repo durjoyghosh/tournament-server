@@ -2,6 +2,22 @@ import { z } from 'zod';
 
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
+const createRequiredDateSchema = (fieldName: string) =>
+  z.string({ required_error: `${fieldName} is required` })
+    .trim()
+    .min(1, `${fieldName} is required`)
+    .refine((val) => !isNaN(Date.parse(val)), { message: `Invalid ${fieldName.toLowerCase()} format` })
+    .transform((val) => new Date(val).toISOString());
+
+const createOptionalDateSchema = (fieldName: string) =>
+  z.preprocess(
+    (val) => (val === '' ? undefined : val),
+    z.string()
+      .refine((val) => !isNaN(Date.parse(val)), { message: `Invalid ${fieldName.toLowerCase()} format` })
+      .transform((val) => new Date(val).toISOString())
+      .optional()
+  );
+
 export const createSportValidationSchema = z.object({
   body: z.object({
     name: z.string({ required_error: 'Sport name is required' }).trim(),
@@ -26,8 +42,8 @@ export const createTournamentValidationSchema = z.object({
     season: z.string({ required_error: 'Season is required' }).trim(),
     description: z.string().optional(),
     location: z.string().optional(),
-    startDate: z.string({ required_error: 'Start date is required' }).datetime('Invalid start date format'),
-    endDate: z.string({ required_error: 'End date is required' }).datetime('Invalid end date format'),
+    startDate: createRequiredDateSchema('Start date'),
+    endDate: createRequiredDateSchema('End date'),
     format: z.enum(['knockout', 'league', 'hybrid']),
     maxTeams: z.number().int().min(2).optional(),
     prizePool: z.number().min(0).optional(),
@@ -47,8 +63,8 @@ export const updateTournamentValidationSchema = z.object({
     season: z.string().trim().optional(),
     description: z.string().optional(),
     location: z.string().optional(),
-    startDate: z.string().datetime('Invalid start date format').optional(),
-    endDate: z.string().datetime('Invalid end date format').optional(),
+    startDate: createOptionalDateSchema('Start date'),
+    endDate: createOptionalDateSchema('End date'),
     format: z.enum(['knockout', 'league', 'hybrid']).optional(),
     status: z.enum(['upcoming', 'live', 'completed', 'cancelled']).optional(),
     maxTeams: z.number().int().min(2).optional(),
@@ -66,9 +82,10 @@ export const queryTournamentValidationSchema = z.object({
     order: z.enum(['asc', 'desc']).optional(),
     search: z.string().optional(),
     sport: z.string().regex(objectIdRegex, 'Invalid Sport ID').optional(),
-    status: z.enum(['upcoming', 'live', 'completed', 'cancelled']).optional(),
+    status: z.preprocess((val) => (val === '' ? undefined : val), z.enum(['upcoming', 'live', 'completed', 'cancelled']).optional()),
     organizer: z.string().regex(objectIdRegex, 'Invalid Organizer ID').optional(),
     isPublished: z.string().optional(),
+    showDeleted: z.string().optional(),
   }),
 });
 
@@ -102,8 +119,9 @@ export const sponsorValidationSchema = z.object({
 
 export const fixtureGeneratorValidationSchema = z.object({
   body: z.object({
-    startDate: z.string({ required_error: 'Start date is required' }).datetime('Invalid start date'),
+    startDate: createRequiredDateSchema('Start date'),
     venue: z.string().optional(),
     matchIntervalDays: z.number().int().min(1).default(3),
   }),
 });
+

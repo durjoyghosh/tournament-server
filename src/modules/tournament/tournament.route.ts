@@ -5,7 +5,6 @@ import { authorize } from '../../middlewares/role.middleware';
 import { validate } from '../../middlewares/validate.middleware';
 import {
   createSportValidationSchema,
-  updateSportValidationSchema,
   createTournamentValidationSchema,
   updateTournamentValidationSchema,
   queryTournamentValidationSchema,
@@ -41,6 +40,28 @@ router.post(
 );
 
 router.get('/', validate(queryTournamentValidationSchema), tournamentController.getAllTournaments);
+
+router.post(
+  '/bulk-delete',
+  protect,
+  authorize('Super Admin', 'Organizer'),
+  tournamentController.bulkDeleteTournaments
+);
+
+router.post(
+  '/bulk-update',
+  protect,
+  authorize('Super Admin', 'Organizer'),
+  tournamentController.bulkUpdateTournaments
+);
+
+router.post(
+  '/:id/restore',
+  protect,
+  authorize('Super Admin', 'Organizer'),
+  validate(tournamentParamsValidationSchema),
+  tournamentController.restoreTournament
+);
 
 router.get('/:id', validate(tournamentParamsValidationSchema), tournamentController.getTournamentById);
 

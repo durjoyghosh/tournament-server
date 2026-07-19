@@ -13,6 +13,7 @@ import {
   refereeReportValidationSchema,
   queryMatchValidationSchema,
   matchParamsValidationSchema,
+  bulkMatchValidationSchema,
 } from './match.validation';
 
 const router = Router();
@@ -139,6 +140,24 @@ router.get(
   protect,
   authorize('Scorekeeper'),
   matchController.getMyScorekeeperMatches
+);
+
+// ---- Bulk Delete matches (Admin / Organizer) ----
+router.post(
+  '/bulk-delete',
+  protect,
+  authorize('Super Admin', 'Organizer'),
+  validate(bulkMatchValidationSchema),
+  matchController.bulkDeleteMatches
+);
+
+// ---- Restore soft-deleted match (Admin / Organizer) ----
+router.patch(
+  '/:id/restore',
+  protect,
+  authorize('Super Admin', 'Organizer'),
+  validate(matchParamsValidationSchema),
+  matchController.restoreMatch
 );
 
 export const matchRoutes = router;

@@ -258,3 +258,43 @@ export const getMyTournaments = catchAsync(async (req: Request, res: Response) =
     meta: result.meta,
   });
 });
+
+export const restoreTournament = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?.id;
+  if (!currentUserId) throw new AppError(401, 'Unauthorized');
+
+  const tournament = await tournamentService.restoreTournament(req.params.id, currentUserId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Tournament restored successfully',
+    data: tournament,
+  });
+});
+
+export const bulkDeleteTournaments = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?.id;
+  if (!currentUserId) throw new AppError(401, 'Unauthorized');
+
+  const { ids } = req.body;
+  await tournamentService.bulkDeleteTournaments(ids, currentUserId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Tournaments bulk deleted successfully',
+  });
+});
+
+export const bulkUpdateTournaments = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?.id;
+  if (!currentUserId) throw new AppError(401, 'Unauthorized');
+
+  const { ids, data } = req.body;
+  await tournamentService.bulkUpdateTournaments(ids, data, currentUserId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Tournaments bulk updated successfully',
+  });
+});
+

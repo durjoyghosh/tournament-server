@@ -114,7 +114,7 @@ export const updateUserStatus = catchAsync(async (req: Request, res: Response) =
 });
 
 // ---- Super Admin: Get all pending organizer requests ----
-export const getPendingOrganizers = catchAsync(async (req: Request, res: Response) => {
+export const getPendingOrganizers = catchAsync(async (_req: Request, res: Response) => {
   const organizers = await userService.getPendingOrganizers();
   sendResponse(res, {
     statusCode: 200,
@@ -154,7 +154,7 @@ export const rejectOrganizer = catchAsync(async (req: Request, res: Response) =>
 });
 
 // ---- Super Admin: Platform-wide analytics ----
-export const getPlatformAnalytics = catchAsync(async (req: Request, res: Response) => {
+export const getPlatformAnalytics = catchAsync(async (_req: Request, res: Response) => {
   const analytics = await userService.getPlatformAnalytics();
   sendResponse(res, {
     statusCode: 200,
@@ -175,3 +175,43 @@ export const getActivityLogs = catchAsync(async (req: Request, res: Response) =>
     meta: logs.meta,
   });
 });
+
+export const restoreUser = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?.id;
+  if (!currentUserId) throw new AppError(401, 'Unauthorized');
+
+  const user = await userService.restoreUser(req.params.id, currentUserId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'User restored successfully',
+    data: user,
+  });
+});
+
+export const bulkDeleteUsers = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?.id;
+  if (!currentUserId) throw new AppError(401, 'Unauthorized');
+
+  const { ids } = req.body;
+  await userService.bulkDeleteUsers(ids, currentUserId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Users bulk deleted successfully',
+  });
+});
+
+export const bulkUpdateUsers = catchAsync(async (req: Request, res: Response) => {
+  const currentUserId = req.user?.id;
+  if (!currentUserId) throw new AppError(401, 'Unauthorized');
+
+  const { ids, data } = req.body;
+  await userService.bulkUpdateUsers(ids, data, currentUserId);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Users bulk updated successfully',
+  });
+});
+

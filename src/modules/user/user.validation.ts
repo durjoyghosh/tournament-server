@@ -30,7 +30,8 @@ export const queryUserValidationSchema = z.object({
     order: z.enum(['asc', 'desc']).optional(),
     search: z.string().optional(),
     role: z.string().optional(),
-    status: z.enum(['active', 'inactive']).optional(),
+    status: z.preprocess((val) => (val === '' ? undefined : val), z.enum(['active', 'inactive']).optional()),
+    showDeleted: z.string().optional(),
   }),
 });
 

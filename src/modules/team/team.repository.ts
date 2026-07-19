@@ -38,12 +38,18 @@ export class TeamRepository {
     manager?: string;
     coach?: string;
     status?: string;
+    showDeleted?: string;
   }) {
     const page = Math.max(1, query.page || 1);
     const limit = Math.max(1, query.limit || 10);
     const skip = (page - 1) * limit;
 
-    const filter: FilterQuery<ITeam> = { isDeleted: false };
+    const filter: FilterQuery<ITeam> = {};
+    if (query.showDeleted === 'true') {
+      filter.isDeleted = true;
+    } else {
+      filter.isDeleted = false;
+    }
 
     if (query.search) {
       filter.name = { $regex: query.search, $options: 'i' };

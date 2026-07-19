@@ -42,12 +42,18 @@ export class UserRepository {
     search?: string;
     role?: string;
     status?: string;
+    showDeleted?: string;
   }) {
     const page = Math.max(1, query.page || 1);
     const limit = Math.max(1, query.limit || 10);
     const skip = (page - 1) * limit;
 
-    const filter: FilterQuery<IUser> = { isDeleted: false };
+    const filter: FilterQuery<IUser> = {};
+    if (query.showDeleted === 'true') {
+      filter.isDeleted = true;
+    } else {
+      filter.isDeleted = false;
+    }
 
     // Search query
     if (query.search) {

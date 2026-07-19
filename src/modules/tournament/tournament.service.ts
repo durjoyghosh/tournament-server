@@ -1,5 +1,5 @@
 import { tournamentRepository } from './tournament.repository';
-import { ITournament, ITournamentAnnouncement, ITournamentSponsor } from './tournament.model';
+import { Tournament, ITournament, ITournamentAnnouncement, ITournamentSponsor } from './tournament.model';
 import { ISport } from './sport.model';
 import { AppError } from '../../utils/AppError';
 import { Team } from '../team/team.model';
@@ -294,6 +294,32 @@ export class TournamentService {
     const updated = await tournamentRepository.pushGalleryItem(id, imageUrl, userId);
     if (!updated) throw new AppError(400, 'Could not add gallery item');
     return updated;
+  }
+
+  async restoreTournament(id: string, updatedBy: string): Promise<ITournament> {
+    const tournament = await Tournament.findOneAndUpdate(
+      { _id: id, isDeleted: true },
+      { isDeleted: false, updatedBy },
+      { new: true }
+    );
+    if (!tournament) {
+      throw new AppError(404, 'Deleted tournament not found');
+    }
+    return tournament;
+  }
+
+  async bulkDeleteTournaments(ids: string[], deletedBy: string): Promise<any> {
+    return Tournament.updateMany(
+      { _id: { $in: ids }, isDeleted: false },
+      { isDeleted: true, updatedBy: deletedBy }
+    );
+  }
+
+  async bulkUpdateTournaments(ids: string[], updateData: any, updatedBy: string): Promise<any> {
+    return Tournament.updateMany(
+      { _id: { $in: ids }, isDeleted: false },
+      { ...updateData, updatedBy }
+    );
   }
 }
 

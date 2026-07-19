@@ -28,9 +28,31 @@ router.post(
 router.get(
   '/',
   protect,
-  authorize('Super Admin', 'Organizer'),
+  authorize('Super Admin', 'Organizer', 'Team Manager', 'Referee', 'Scorekeeper'),
   validate(queryUserValidationSchema),
   userController.getAllUsers
+);
+
+router.post(
+  '/bulk-delete',
+  protect,
+  authorize('Super Admin'),
+  userController.bulkDeleteUsers
+);
+
+router.post(
+  '/bulk-update',
+  protect,
+  authorize('Super Admin'),
+  userController.bulkUpdateUsers
+);
+
+router.post(
+  '/:id/restore',
+  protect,
+  authorize('Super Admin'),
+  validate(userParamsValidationSchema),
+  userController.restoreUser
 );
 
 router.get(
@@ -94,7 +116,7 @@ router.patch(
 router.get(
   '/admin/analytics',
   protect,
-  authorize('Super Admin'),
+  authorize('Super Admin', 'Organizer'),
   userController.getPlatformAnalytics
 );
 

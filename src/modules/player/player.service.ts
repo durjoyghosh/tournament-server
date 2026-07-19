@@ -1,5 +1,5 @@
 import { playerRepository } from './player.repository';
-import { IPlayer } from './player.model';
+import { Player, IPlayer } from './player.model';
 import { AppError } from '../../utils/AppError';
 import { User } from '../user/user.model';
 import { Team } from '../team/team.model';
@@ -98,6 +98,32 @@ export class PlayerService {
     }
 
     await playerRepository.softDelete(id, userId);
+  }
+
+  async restorePlayer(id: string, updatedBy: string): Promise<IPlayer> {
+    const player = await Player.findOneAndUpdate(
+      { _id: id, isDeleted: true },
+      { isDeleted: false, updatedBy },
+      { new: true }
+    );
+    if (!player) {
+      throw new AppError(404, 'Deleted player profile not found');
+    }
+    return player;
+  }
+
+  async bulkDeletePlayers(ids: string[], deletedBy: string): Promise<any> {
+    return Player.updateMany(
+      { _id: { $in: ids }, isDeleted: false },
+      { isDeleted: true, updatedBy: deletedBy }
+    );
+  }
+
+  async bulkUpdatePlayers(ids: string[], updateData: any, updatedBy: string): Promise<any> {
+    return Player.updateMany(
+      { _id: { $in: ids }, isDeleted: false },
+      { ...updateData, updatedBy }
+    );
   }
 }
 

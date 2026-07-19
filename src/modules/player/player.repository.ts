@@ -47,12 +47,18 @@ export class PlayerRepository {
     team?: string;
     status?: string;
     search?: string;
+    showDeleted?: string;
   }) {
     const page = Math.max(1, query.page || 1);
     const limit = Math.max(1, query.limit || 10);
     const skip = (page - 1) * limit;
 
-    const filter: FilterQuery<IPlayer> = { isDeleted: false };
+    const filter: FilterQuery<IPlayer> = {};
+    if (query.showDeleted === 'true') {
+      filter.isDeleted = true;
+    } else {
+      filter.isDeleted = false;
+    }
 
     if (query.team) {
       filter.team = query.team;
